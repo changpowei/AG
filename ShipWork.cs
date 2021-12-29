@@ -47,7 +47,7 @@ public class ShipWork : MonoBehaviour
 
             if ((!isKnown) && (Vector3.Distance(target_trans.position, this.transform.position)<=28000))
             {
-                // 以下函式用於當RF偵測到護衛艦產生避帳點，之後於此部份修改避帳策略
+                // 以下函式用於當RF偵測到護衛艦產生避帳點，之後於此部份修改避帳策略//
                 //missile.SettingAvoidPath(this.transform.position, searchRange);
                 SetKnown(true);
             }
