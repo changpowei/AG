@@ -70,9 +70,13 @@ public class SystemSurroundingSetting : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void TryResetStop(Text btn_text)
     {
-        
+        if (gameStop)
+        {
+            btn_text.text = "暫停模擬";
+            gameStop = false;
+            Time.timeScale = systemSpeed;
+        }
     }
 }

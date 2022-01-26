@@ -207,6 +207,7 @@ public class ShipSettingControl : MonoBehaviour
         }
         target.ship.transform.position = new Vector3(target.set_X_value, target.ship.transform.position.y, target.ship.transform.position.z);
     }
+
     private void Changed_Z(string arg0)
     {
         if (arg0 == "-")
@@ -271,14 +272,16 @@ public class ShipSettingControl : MonoBehaviour
             target.set_V_value = 0;
         else
             target.set_V_value = Single.Parse(arg0);
+        target.ship.shipSpeed = target.set_V_value;
         input_V.text = target.set_V_value.ToString("0.0");
     }
 
     private void Changed_Known()
     {
-        var target = ships[pointer].ship;
-        target.SetKnown(!target.isKnown);
-        button_Known.image.color = new Color(target.isKnown ? 0 : 1, 1, 0);
+        var target = ships[pointer];
+        target.set_Known = !target.set_Known;
+        target.ship.SetKnown(target.set_Known);    
+        button_Known.image.color = new Color(target.set_Known ? 0 : 1, 1, 0);
     }
     private void Same_R()
     {

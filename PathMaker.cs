@@ -15,11 +15,6 @@ public class PathMaker : MonoBehaviour
     public PathPointer[] SPath_S = new PathPointer[9];
     public PathPointer[] SPath_E = new PathPointer[9];
     public PathPointer[] SPath_N = new PathPointer[9];
-    public PathPointer[] Path_SDS = new PathPointer[9];
-
-    public PathPointer[] Path_SD_LP_S = new PathPointer[11];
-
-    public PathPointer[] Path_BD_LP_S = new PathPointer[11];
 
     public List<PathGiver> pathList = new List<PathGiver>();
     public bool ready = false;
@@ -160,136 +155,6 @@ public class PathMaker : MonoBehaviour
             SPath_N[i].data.target_right = SPath_W[i].data.target_right;
             SPath_N[i].data.target_R = SPath_W[i].data.target_R - 270.0f;
         }
-        #endregion
-
-        #region #Path_SDS
-        Path_SDS[0].pos = new Vector3(0, 0, -47225f);
-        Path_SDS[0].data.target_right = 38.6f;
-        Path_SDS[0].data.target_R = 0.0f;
-
-        Path_SDS[1].pos = new Vector3(2515.52f, 0, -41745.82f);
-        Path_SDS[1].data.target_right = 0.0f;
-        Path_SDS[1].data.target_R = 49.32f;
-
-        Path_SDS[2].pos = new Vector3(44709.48f, 0, -5479.18f);
-        Path_SDS[2].data.target_right = -38.6f;
-        Path_SDS[2].data.target_R = 49.32f;
-
-        Path_SDS[3].pos = new Vector3(45108.85f, 0, 5108.85f);
-        Path_SDS[3].data.target_right = 0.0f;
-        Path_SDS[3].data.target_R = -45.0f;
-
-        Path_SDS[4].pos = new Vector3(5108.85f, 0, 45108.85f);
-        Path_SDS[4].data.target_right = -38.6f;
-        Path_SDS[4].data.target_R = -45.0f;
-
-        Path_SDS[5].pos = new Vector3(-5108.85f, 0, 45108.85f);
-        Path_SDS[5].data.target_right = 0.0f;
-        Path_SDS[5].data.target_R = -135.0f;
-
-        Path_SDS[6].pos = new Vector3(-45108.85f, 0, 5108.85f);
-        Path_SDS[6].data.target_right = -38.6f;
-        Path_SDS[6].data.target_R = -135.0f;
-
-        Path_SDS[7].pos = new Vector3(-45935.58f, 0, -4119.4f);
-        Path_SDS[7].data.target_right = 0.0f;
-        Path_SDS[7].data.target_R = 145.24f;
-
-        Path_SDS[8].pos = new Vector3(-13160.58f, 0, -51344.4f);
-        Path_SDS[8].data.target_right = -38.6f;
-        Path_SDS[8].data.target_R = 145.24f;
-        #endregion
-
-        #region #Path_SD_LP_S
-        Path_SD_LP_S[0].pos = new Vector3(-7172.43f, 0, -40870.01f);
-        Path_SD_LP_S[0].data.target_right = 38.6f;
-        Path_SD_LP_S[0].data.target_R = -6.92f;
-
-        Path_SD_LP_S[1].pos = new Vector3(-3634.34f, 0, -33755.63f);
-        Path_SD_LP_S[1].data.target_right = 0.0f;
-        Path_SD_LP_S[1].data.target_R = 59.80f;
-
-        Path_SD_LP_S[2].pos = new Vector3(43634.34f, 0, -6244.37f);
-        Path_SD_LP_S[2].data.target_right = -38.6f;
-        Path_SD_LP_S[2].data.target_R = 59.80f;
-
-        Path_SD_LP_S[3].pos = new Vector3(45108.85f, 0, 5108.85f);
-        Path_SD_LP_S[3].data.target_right = 0.0f;
-        Path_SD_LP_S[3].data.target_R = -45.0f;
-
-        Path_SD_LP_S[4].pos = new Vector3(5108.85f, 0, 45108.85f);
-        Path_SD_LP_S[4].data.target_right = -38.6f;
-        Path_SD_LP_S[4].data.target_R = -45.0f;
-
-        Path_SD_LP_S[5].pos = new Vector3(-5108.85f, 0, 45108.85f);
-        Path_SD_LP_S[5].data.target_right = 0.0f;
-        Path_SD_LP_S[5].data.target_R = -135.0f;
-
-        Path_SD_LP_S[6].pos = new Vector3(-45108.85f, 0, 5108.85f);
-        Path_SD_LP_S[6].data.target_right = -38.6f;
-        Path_SD_LP_S[6].data.target_R = -135.0f;
-
-        Path_SD_LP_S[7].pos = new Vector3(-45108.58f, 0, -5108.85f);
-        Path_SD_LP_S[7].data.target_right = 0.0f;
-        Path_SD_LP_S[7].data.target_R = 135.0f;
-
-        Path_SD_LP_S[8].pos = new Vector3(-5108.85f, 0, -45108.85f);
-        Path_SD_LP_S[8].data.target_right = -38.6f;
-        Path_SD_LP_S[8].data.target_R = 135.0f;
-
-        Path_SD_LP_S[9].pos = new Vector3(7106.16f, 0, -38694.98f);
-        Path_SD_LP_S[9].data.target_right = 0.0f;
-        Path_SD_LP_S[9].data.target_R = -10.41f;
-
-        Path_SD_LP_S[10].pos = new Vector3(0.0f, 0, 0.0f);
-        Path_SD_LP_S[10].data.target_right = 0.0f;
-        Path_SD_LP_S[10].data.target_R = -10.41f;
-        #endregion
-
-        #region #Path_BD_LP_S
-        Path_BD_LP_S[0].pos = new Vector3(-7139.94f, 0, -53880.36f);
-        Path_BD_LP_S[0].data.target_right = 38.6f;
-        Path_BD_LP_S[0].data.target_R = -8.80f;
-
-        Path_BD_LP_S[1].pos = new Vector3(-4023.06f, 0, -46773.70f);
-        Path_BD_LP_S[1].data.target_right = 0.0f;
-        Path_BD_LP_S[1].data.target_R = 56.16f;
-
-        Path_BD_LP_S[2].pos = new Vector3(56798.06f, 0, -6001.30f);
-        Path_BD_LP_S[2].data.target_right = -38.6f;
-        Path_BD_LP_S[2].data.target_R = 56.16f;
-
-        Path_BD_LP_S[3].pos = new Vector3(57883.85f, 0, 5108.85f);
-        Path_BD_LP_S[3].data.target_right = 0.0f;
-        Path_BD_LP_S[3].data.target_R = -45.0f;
-
-        Path_BD_LP_S[4].pos = new Vector3(5108.85f, 0, 57883.85f);
-        Path_BD_LP_S[4].data.target_right = -38.6f;
-        Path_BD_LP_S[4].data.target_R = -45.0f;
-
-        Path_BD_LP_S[5].pos = new Vector3(-5108.85f, 0, 57883.85f);
-        Path_BD_LP_S[5].data.target_right = 0.0f;
-        Path_BD_LP_S[5].data.target_R = -135.0f;
-
-        Path_BD_LP_S[6].pos = new Vector3(-57883.85f, 0, 5108.85f);
-        Path_BD_LP_S[6].data.target_right = -38.6f;
-        Path_BD_LP_S[6].data.target_R = -135.0f;
-
-        Path_BD_LP_S[7].pos = new Vector3(-57883.85f, 0, -5108.85f);
-        Path_BD_LP_S[7].data.target_right = 0.0f;
-        Path_BD_LP_S[7].data.target_R = 135.0f;
-
-        Path_BD_LP_S[8].pos = new Vector3(-5108.85f, 0, -57883.85f);
-        Path_BD_LP_S[8].data.target_right = -38.6f;
-        Path_BD_LP_S[8].data.target_R = 135.0f;
-
-        Path_BD_LP_S[9].pos = new Vector3(7156.97f, 0, -51785.88f);
-        Path_BD_LP_S[9].data.target_right = 0.0f;
-        Path_BD_LP_S[9].data.target_R = -7.87f;
-
-        Path_BD_LP_S[10].pos = new Vector3(0.0f, 0, 0.0f);
-        Path_BD_LP_S[10].data.target_right = 0.0f;
-        Path_BD_LP_S[10].data.target_R = -7.87f;
         #endregion
 
         ready = true;
@@ -446,60 +311,6 @@ public class PathMaker : MonoBehaviour
                         pg.pathMode = PathMode.TURN;
                     }
                     pg.target_R = SPath_N[i].data.target_R;
-                    pathList.Add(pg);
-                }
-                break;
-            case StanderPath.Start_SDS:
-                for (int i = 0; i < Path_SDS.Length; i++)
-                {
-                    var point = GameObject.Instantiate(base_point, new Vector3(Path_SDS[i].pos.x, 10, Path_SDS[i].pos.z), new Quaternion().normalized, this.transform);
-                    point.name = "P" + (i + 1);
-                    var pg = point.GetComponent<PathGiver>();
-
-                    if (Path_SDS[i].data.target_right == 0)
-                        pg.pathMode = PathMode.FORWORD;
-                    else
-                    {
-                        pg.target_right = Path_SDS[i].data.target_right;
-                        pg.pathMode = PathMode.TURN;
-                    }
-                    pg.target_R = Path_SDS[i].data.target_R;
-                    pathList.Add(pg);
-                }
-                break;
-            case StanderPath.Start_SD_LP_S:
-                for (int i = 0; i < Path_SD_LP_S.Length; i++)
-                {
-                    var point = GameObject.Instantiate(base_point, new Vector3(Path_SD_LP_S[i].pos.x, 10, Path_SD_LP_S[i].pos.z), new Quaternion().normalized, this.transform);
-                    point.name = "P" + (i + 1);
-                    var pg = point.GetComponent<PathGiver>();
-
-                    if (Path_SD_LP_S[i].data.target_right == 0)
-                        pg.pathMode = PathMode.FORWORD;
-                    else
-                    {
-                        pg.target_right = Path_SD_LP_S[i].data.target_right;
-                        pg.pathMode = PathMode.TURN;
-                    }
-                    pg.target_R = Path_SD_LP_S[i].data.target_R;
-                    pathList.Add(pg);
-                }
-                break;
-            case StanderPath.Start_BD_LP_S:
-                for (int i = 0; i < Path_BD_LP_S.Length; i++)
-                {
-                    var point = GameObject.Instantiate(base_point, new Vector3(Path_BD_LP_S[i].pos.x, 10, Path_BD_LP_S[i].pos.z), new Quaternion().normalized, this.transform);
-                    point.name = "P" + (i + 1);
-                    var pg = point.GetComponent<PathGiver>();
-
-                    if (Path_BD_LP_S[i].data.target_right == 0)
-                        pg.pathMode = PathMode.FORWORD;
-                    else
-                    {
-                        pg.target_right = Path_BD_LP_S[i].data.target_right;
-                        pg.pathMode = PathMode.TURN;
-                    }
-                    pg.target_R = Path_BD_LP_S[i].data.target_R;
                     pathList.Add(pg);
                 }
                 break;

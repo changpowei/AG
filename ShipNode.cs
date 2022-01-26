@@ -34,6 +34,7 @@ public class ShipNode : MonoBehaviour
     public float set_Z_value = 0.0f;
     public float set_R_value = 0.0f;
     public float set_V_value = 30.0f;
+    public bool set_Known = false;
 
     public void SimulatorWork(bool workset)
     {
@@ -78,6 +79,8 @@ public class ShipNode : MonoBehaviour
     {
         ship.transform.position = new Vector3(set_X_value, 0.0f, set_Z_value);
         ship.transform.localEulerAngles = new Vector3(0.0f, set_R_value, 0.0f);
+        ship.shipSpeed = set_V_value;
+        ship.SetKnown(set_Known);
     }
 
     private void OnGUI()

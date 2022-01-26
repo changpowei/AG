@@ -8,7 +8,7 @@ public class Controller : MonoBehaviour
     public bool work = false;
     public SettingControl setting;
 
-    public float speed = 272.0f;
+    public float speed = 238.0f;
 
     [Range(-45.0f,45.0f)]
     public float right = 0.0f;
@@ -65,6 +65,8 @@ public class Controller : MonoBehaviour
     public GameObject pathGiver;
     public GameObject pathTrace;
 
+    public List<FindShip> findShips = new List<FindShip>();
+
     private void Awake()
     {
         if (limitFPS)
@@ -91,7 +93,8 @@ public class Controller : MonoBehaviour
         path_Gone.SetPosition(1, this.transform.position);
         StartCoroutine(PathRecord());
         StartCoroutine(RFWork());
-        if(navigate)
+        StartCoroutine(UpdateShip());
+        if (navigate)
             StartCoroutine(SimulatorNavigate());
         else
             StartCoroutine(SimulatorMoving());
@@ -110,6 +113,7 @@ public class Controller : MonoBehaviour
         if (setting != null)
         {
             setting.Reset();
+            enmyTarget = null;
             path_Gone.positionCount = 2;
             var defaultPoints = new Vector3[2];
             defaultPoints[0] = this.transform.position;
@@ -133,12 +137,6 @@ public class Controller : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.name == "Ship")
-            Destroy(other.gameObject);
-    }
-
     IEnumerator SimulatorMoving()
     {
         while (startSimulator)
@@ -147,7 +145,7 @@ public class Controller : MonoBehaviour
             if (enmyTarget != null)
             {
                 right = 0.0f;
-                this.transform.LookAt(enmyTarget.transform);
+                this.transform.LookAt(new Vector3(enmyTarget.transform.position.x, 10, enmyTarget.transform.position.z));
                 this.transform.Translate(0.0f, 0.0f, speed / 60.0f * Time.timeScale);
             }
             else
@@ -184,7 +182,7 @@ public class Controller : MonoBehaviour
             }
             else
             {
-                this.transform.LookAt(enmyTarget.transform);
+                this.transform.LookAt(new Vector3(enmyTarget.transform.position.x, 10, enmyTarget.transform.position.z));
                 this.transform.Translate(0.0f, 0.0f, speed / 60.0f * Time.timeScale);
             }
         }
@@ -225,6 +223,20 @@ public class Controller : MonoBehaviour
         }
     }
 
+    IEnumerator UpdateShip()
+    {
+        yield return new WaitForSeconds(1.0f);
+        if (findShips.Count > 0)
+        {
+            for (int i = 0; i < findShips.Count; i++)
+            {
+                findShips[i].lostTime += 1.0f;
+            }
+        }
+        if (startSimulator)
+            StartCoroutine(UpdateShip());
+    }
+
     public void RF_WORK()
     {
         work_RF = true;
@@ -237,13 +249,14 @@ public class Controller : MonoBehaviour
         Vector2 tar_2D_pos = new Vector2(ship_pos.x, ship_pos.z);
         Vector2 self_f = new Vector2(this.transform.forward.x, this.transform.forward.z);
 
-        float avoid_R = range + 2000;
         float self_r = stand_HalfLength;
+        float avoid_R = 23000 - self_r;
 
+        #region #Old Work
         if (CheckAvoidNeed(tar_2D_pos, range))
         {
-            Vector2 vec_ST = new Vector2(tar_2D_pos.x - self_2D_pos.x, tar_2D_pos.y - self_2D_pos.y);
-
+            Vector2 vec_ST = tar_2D_pos - self_2D_pos;
+               
             var f = self_f.x * vec_ST.y - vec_ST.x * self_f.y;
 
             Vector2 vec_n = new Vector2();
@@ -253,224 +266,47 @@ public class Controller : MonoBehaviour
             else       //左轉
                 vec_n = new Vector2(-self_f.y, self_f.x);
 
-            var tempC = new Vector2(self_2D_pos.x + vec_n.x * self_r, self_2D_pos.y + vec_n.y * self_r);
+            var avoidPath = new PathSetting();
+            avoidPath.name = "avoidPath1";
 
-            //偏移後直線方程式 x = a+bt,y=c+dt
-            var a = tempC.x;
-            var b = self_f.x;
-            var c = tempC.y;
-            var d = self_f.y;
-
-            //替代用參數
-            var e = a - tar_2D_pos.x;
-            var g = c - tar_2D_pos.y;
-
-            //主參數整理
-            var A = b * b + d * d;
-            var B = 2 * b * e + 2 * d * g;
-            var C = e * e + g * g - (self_r + avoid_R) * (self_r + avoid_R);
-
-            //一元二次方程式公式
-            var t1 = (-1 * B + Mathf.Sqrt(B * B - 4 * A * C)) / 2 * A;
-            var t2 = (-1 * B - Mathf.Sqrt(B * B - 4 * A * C)) / 2 * A;
-
-            //兩相切圓圓心座標
-            Vector2 C_far = new Vector2(a + b * t1, c + d * t1);
-            Vector2 C_close = new Vector2(a + b * t2, c + d * t2);
-            Debug.Log("C_F:" + C_far);
-            Debug.Log("C_C:" + C_close);
-
-
-            //圓心至目標向量
-            var vec_CfT = tar_2D_pos - C_far;
-            var vec_CcT = tar_2D_pos - C_close;
-
-            //開始座標 (開始繞小圈外轉時機點)
-            var P1 = new Vector2(C_close.x - vec_n.x * self_r, C_close.y - vec_n.y * self_r);
-
-            //切點座標 (停止繞小圈，改繞大圈內轉時機點)
-            var P2 = new Vector2(C_close.x + vec_CcT.x * (self_r / (self_r + avoid_R)), C_close.y + vec_CcT.y * (self_r / (self_r + avoid_R)));
-
-            //切點座標 (停止繞大圈，改繞小圈外轉時機點)
-            var P3 = new Vector2(C_far.x + vec_CfT.x * (self_r / (self_r + avoid_R)), C_far.y + vec_CfT.y * (self_r / (self_r + avoid_R)));
-
-            //結束座標 (結束繞小圈時機點)
-            var P4 = new Vector2(C_far.x - vec_n.x * self_r, C_far.y - vec_n.y * self_r);
-
-            var point1 = GameObject.Instantiate(pathGiver, new Vector3(P1.x, 10, P1.y), new Quaternion().normalized, null);
-            point1.name = "P1";
-            /*
-            var point2 = GameObject.Instantiate(pathGiver, new Vector3(P2.x, 10, P2.y), new Quaternion().normalized, null);
-            point2.name = "P2";
-            var point3 = GameObject.Instantiate(pathGiver, new Vector3(P3.x, 10, P3.y), new Quaternion().normalized, null);
-            point3.name = "P3";
-            */
-            var point4 = GameObject.Instantiate(pathGiver, new Vector3(P4.x, 10, P4.y), new Quaternion().normalized, null);
-            point4.name = "P4";
-
-            var v_P2T = tar_2D_pos - P2;
-            var v_P3T = tar_2D_pos - P3;
-
-            Vector2 v_P2T_n;
-            Vector2 v_P3T_n;
-
-            if (f > 0) //一開始右轉
-            {
-                v_P2T_n = new Vector2(v_P2T.y, -v_P2T.x);
-                v_P3T_n = new Vector2(-v_P3T.y, v_P3T.x);
-            }
-            else //一開始左轉
-            {
-                v_P2T_n = new Vector2(-v_P2T.y, v_P2T.x);
-                v_P3T_n = new Vector2(v_P3T.y, -v_P3T.x);
-            }
-
-            //L2直線方程式 x = a+bt,y=c+dt
-            var a2 = P2.x;
-            var b2 = v_P2T_n.x;
-            var c2 = P2.y;
-            var d2 = v_P2T_n.y;
-
-            //L3直線方程式 x = a+bt,y=c+dt
-            var a3 = P3.x;
-            var b3 = v_P3T_n.x;
-            var c3 = P3.y;
-            var d3 = v_P3T_n.y;
-
-            //L2與L3相交 a2+b2*t2 = a3+b3*t3,c2+d2*t2=c3+d3*t3
-
-            //解 a2 + b2 * t2 = a3 + b3 * t3得t3 = v1 + v2 * t2
-            var v1 = (a2 - a3) / b3;
-            var v2 = b2 / b3;
-
-            //解 c2 + d2 * t2 = c3 + d3 * t3得t3 = v3 + v4 * t2
-            var v3 = (c2 - c3) / d3;
-            var v4 = d2 / d3;
-
-            //t3相等=> v1 + v2 * t2 =  v3 + v4 * t2
-            var t_2 = (v1 - v3) / (v4 - v2);
-
-            Vector2 Px = new Vector2(a2 + b2 * t_2, c2 + d2 * t_2);
-
-            var vP2_Px = Px - P2;
-            var vP3_Px = Px - P3;
-
-            Vector2 P2d = new Vector2(P2.x + vP2_Px.x * (avoid_R - self_r) / avoid_R, P2.y + vP2_Px.y * (avoid_R - self_r) / avoid_R);
-            Vector2 P3d = new Vector2(P3.x + vP3_Px.x * (avoid_R - self_r) / avoid_R, P3.y + vP3_Px.y * (avoid_R - self_r) / avoid_R);
-            /*
-            var point2d = GameObject.Instantiate(pathGiver, new Vector3(P2d.x, 10, P2d.y), new Quaternion().normalized, null);
-            point2d.name = "P2'";
-            var point3d = GameObject.Instantiate(pathGiver, new Vector3(P3d.x, 10, P3d.y), new Quaternion().normalized, null);
-            point3d.name = "P3'";
-            */
-
-            Vector2 C_middle = new Vector2(tar_2D_pos.x + vec_n.x * (avoid_R - self_r), tar_2D_pos.y + vec_n.y * (avoid_R - self_r));
-
-            Debug.Log("C_M:" + C_middle);
-
-            float arg_a = Mathf.Asin(self_r / (Vector2.Distance(C_middle, C_close) / 2));
-
-            Debug.Log("a:" + arg_a);       
-
-            //切點座標 (停止繞小圈，改繞大圈內轉時機點)
-            var P2_new = C_close - self_r * Mathf.Cos(arg_a) * vec_n + self_r * Mathf.Sin(arg_a) * self_f;
-            var P2d_new = C_middle + self_r * Mathf.Cos(arg_a) * vec_n - self_r * Mathf.Sin(arg_a) * self_f;           
-
-            var P3_new = C_far - self_r * Mathf.Cos(arg_a) * vec_n - self_r * Mathf.Sin(arg_a) * self_f;
-            var P3d_new = C_middle + self_r * Mathf.Cos(arg_a) * vec_n + self_r * Mathf.Sin(arg_a) * self_f;
-
-            var pointN2 = GameObject.Instantiate(pathGiver, new Vector3(P2_new.x, 10, P2_new.y), new Quaternion().normalized, null);
-            pointN2.name = "P2_new";
-            var pointN2d = GameObject.Instantiate(pathGiver, new Vector3(P2d_new.x, 10, P2d_new.y), new Quaternion().normalized, null);
-            pointN2d.name = "P2'_new";
-
-            var pointN3 = GameObject.Instantiate(pathGiver, new Vector3(P3_new.x, 10, P3_new.y), new Quaternion().normalized, null);
-            pointN3.name = "P3_new";
-            var pointN3d = GameObject.Instantiate(pathGiver, new Vector3(P3d_new.x, 10, P3d_new.y), new Quaternion().normalized, null);
-            pointN3d.name = "P3'_new";
-
-            //設定路徑點數值
+            var C1 = new CircleData();
+            C1.position = self_2D_pos + (vec_n * self_r);               
             if (f > 0) //右轉
-            {
-                point1.GetComponent<PathGiver>().target_right = 38.6f;
-                point1.GetComponent<PathGiver>().pathMode = PathMode.TURN;
-                point1.GetComponent<PathGiver>().next = pointN2.GetComponent<PathGiver>();
-                point1.GetComponent<PathGiver>().target_R = this.transform.rotation.eulerAngles.y;
+                C1.turnMode = TurnMode.Right;
+            else
+                C1.turnMode = TurnMode.Left;
 
-                pointN2.GetComponent<PathGiver>().target_right = 0;
-                pointN2.GetComponent<PathGiver>().pathMode = PathMode.FORWORD;
-                pointN2.GetComponent<PathGiver>().next = pointN2d.GetComponent<PathGiver>();
+            var C2 = new CircleData();
+            C2.position = tar_2D_pos + (vec_n * avoid_R);
+            if (f > 0) //右轉
+                C2.turnMode = TurnMode.Left;
+            else
+                C2.turnMode = TurnMode.Right;
 
-                var vec_2 = pointN2d.transform.position - pointN2.transform.position;
-                Debug.Log("Q:" + Quaternion.LookRotation(vec_2).eulerAngles);
+            var C3 = new CircleData();
+            var A = (self_f.x * self_f.x + self_f.y * self_f.y);
+            var B = (tar_2D_pos.x * self_f.x + tar_2D_pos.y * self_f.y - self_2D_pos.x * self_f.x - self_2D_pos.y * self_f.y);
+           
+            var a = B/A;
 
-                pointN2.GetComponent<PathGiver>().target_R = Quaternion.LookRotation(vec_2).eulerAngles.y;
+            C3.position = C1.position + 2 *a* self_f;
 
-                pointN2d.GetComponent<PathGiver>().target_right = -38.6f;
-                pointN2d.GetComponent<PathGiver>().pathMode = PathMode.TURN;
-                pointN2d.GetComponent<PathGiver>().next = pointN3d.GetComponent<PathGiver>();
-                pointN2d.GetComponent<PathGiver>().target_R = pointN2.GetComponent<PathGiver>().target_R;
+            if (f > 0) //右轉                  
+                C3.turnMode = TurnMode.Right;
+            else
+                C3.turnMode = TurnMode.Left;
 
-                pointN3d.GetComponent<PathGiver>().target_right = 0;
-                pointN3d.GetComponent<PathGiver>().pathMode = PathMode.FORWORD;
-                pointN3d.GetComponent<PathGiver>().next = pointN3.GetComponent<PathGiver>();
+            avoidPath.circleDatas.Add(C1);
+            avoidPath.circleDatas.Add(C2);
+            avoidPath.circleDatas.Add(C3);
 
-                var vec_3 = pointN3.transform.position - pointN3d.transform.position;
-                Debug.Log("Q:" + Quaternion.LookRotation(vec_3).eulerAngles);
-                pointN3d.GetComponent<PathGiver>().target_R = Quaternion.LookRotation(vec_3).eulerAngles.y;
-
-                pointN3.GetComponent<PathGiver>().target_right = 38.6f;
-                pointN3.GetComponent<PathGiver>().pathMode = PathMode.TURN;
-                pointN3.GetComponent<PathGiver>().next = point4.GetComponent<PathGiver>();
-                pointN3.GetComponent<PathGiver>().target_R = pointN3d.GetComponent<PathGiver>().target_R;
-
-                point4.GetComponent<PathGiver>().target_right = 0;
-                point4.GetComponent<PathGiver>().pathMode = PathMode.FORWORD;
-                point4.GetComponent<PathGiver>().target_R = this.transform.rotation.eulerAngles.y;
-            }
-            else       //左轉
-            {
-                point1.GetComponent<PathGiver>().target_right = -38.6f;
-                point1.GetComponent<PathGiver>().pathMode = PathMode.TURN;
-                point1.GetComponent<PathGiver>().next = pointN2.GetComponent<PathGiver>();
-                point1.GetComponent<PathGiver>().target_R = this.transform.rotation.eulerAngles.y;
-
-                pointN2.GetComponent<PathGiver>().target_right = 0;
-                pointN2.GetComponent<PathGiver>().pathMode = PathMode.FORWORD;
-                pointN2.GetComponent<PathGiver>().next = pointN2d.GetComponent<PathGiver>();
-
-                var vec_2 = pointN2d.transform.position - pointN2.transform.position;
-                Debug.Log("Q:" + Quaternion.LookRotation(vec_2).eulerAngles);
-
-                pointN2.GetComponent<PathGiver>().target_R = Quaternion.LookRotation(vec_2).eulerAngles.y;
-
-                pointN2d.GetComponent<PathGiver>().target_right = 38.6f;
-                pointN2d.GetComponent<PathGiver>().pathMode = PathMode.TURN;
-                pointN2d.GetComponent<PathGiver>().next = pointN3d.GetComponent<PathGiver>();
-                pointN2d.GetComponent<PathGiver>().target_R = pointN2.GetComponent<PathGiver>().target_R;
-
-                pointN3d.GetComponent<PathGiver>().target_right = 0;
-                pointN3d.GetComponent<PathGiver>().pathMode = PathMode.FORWORD;
-                pointN3d.GetComponent<PathGiver>().next = pointN3.GetComponent<PathGiver>();
-
-                var vec_3 = pointN3.transform.position - pointN3d.transform.position;
-                Debug.Log("Q:" + Quaternion.LookRotation(vec_3).eulerAngles);
-                pointN3d.GetComponent<PathGiver>().target_R = Quaternion.LookRotation(vec_3).eulerAngles.y;
-
-                pointN3.GetComponent<PathGiver>().target_right = -38.6f;
-                pointN3.GetComponent<PathGiver>().pathMode = PathMode.TURN;
-                pointN3.GetComponent<PathGiver>().next = point4.GetComponent<PathGiver>();
-                pointN3.GetComponent<PathGiver>().target_R = pointN3d.GetComponent<PathGiver>().target_R;
-
-                point4.GetComponent<PathGiver>().target_right = 0;
-                point4.GetComponent<PathGiver>().pathMode = PathMode.FORWORD;
-                point4.GetComponent<PathGiver>().target_R = this.transform.rotation.eulerAngles.y;
-            }
+            GameObject.FindObjectOfType<PathGroupMaker>().SettingPathGroup(avoidPath);
         }
         else
         {
             Debug.Log("Not need to avoid!");
         }
+        #endregion
     }
 
     public bool CheckAvoidNeed(Vector2 ship_pos, float range)
@@ -489,6 +325,62 @@ public class Controller : MonoBehaviour
             return false;
         else
             return true;   
+    }
+
+    public void RF_Finded(string name, Vector2 find_pos)
+    {
+        var newData = true;
+        for (int i = 0; i < findShips.Count; i++)
+        {
+            if (findShips[i].first)
+            {
+                var dis = Vector2.Distance(find_pos, findShips[i].pos);
+                if(dis < 100)
+                {
+                    findShips[i].first = false;
+                    findShips[i].moveVec = (find_pos - findShips[i].pos) / 4;
+                    findShips[i].pos = find_pos;
+                    newData = false;
+                    findShips[i].lostTime = 0.0f;
+                    i = findShips.Count;
+                }
+            }
+            else
+            {             
+                var dis = Vector2.Distance(find_pos, findShips[i].pos + (findShips[i].lostTime * findShips[i].moveVec));
+                var vecLen = Vector2.Distance(new Vector2(0, 0), findShips[i].moveVec);
+
+                if (dis < (vecLen*1.5))
+                {
+                    findShips[i].pos = find_pos;
+                    findShips[i].lostTime = 0.0f;
+                    newData = false;
+                    i = findShips.Count;
+                }
+            }
+        }
+
+        if (newData)
+        {
+            if (name != "")
+            {
+                var newShip = new FindShip();
+                newShip.guessName = name;
+                newShip.first = true;
+                newShip.pos = find_pos;
+                newShip.lostTime = 0.0f;              
+                findShips.Add(newShip);
+            }
+            else
+            {
+                var newShip = new FindShip();
+                newShip.guessName = "052C";
+                newShip.first = true;
+                newShip.pos = find_pos;
+                newShip.lostTime = 0.0f;
+                findShips.Add(newShip);
+            }
+        }
     }
 
     private void OnGUI()
@@ -558,6 +450,8 @@ public class Controller : MonoBehaviour
         x_value = this.transform.transform.position.x;
         z_value = this.transform.transform.position.z;
         h_value = this.transform.transform.position.y;
+
+
     }
 
     public void ChangeR(float value)
@@ -571,4 +465,15 @@ public class Controller : MonoBehaviour
         else
             right = value;
     }
+}
+
+
+[System.Serializable]
+public class FindShip
+{
+    public Vector2 pos = new Vector2();
+    public string guessName =  ""; //054A 052C 052D CVLL
+    public Vector2 moveVec = new Vector2();
+    public float lostTime;
+    public bool first = true;
 }

@@ -11,6 +11,9 @@ public class PathGiver : MonoBehaviour
     public float target_R;
     public float target_right;
 
+    public TurnCircle ownCircle;
+    public LineRenderer enterLine;
+
     private void OnTriggerEnter(Collider other)
     {
         if(other.name == ("MainController"))
@@ -20,6 +23,8 @@ public class PathGiver : MonoBehaviour
             if (next == null)
             {
                 other.GetComponent<Controller>().startSimulator = false;
+                if (ownCircle != null)
+                    ownCircle.StartIn();
             }
             else
             {
@@ -30,11 +35,15 @@ public class PathGiver : MonoBehaviour
                 {
                     case PathMode.FORWORD:
                         other.GetComponent<Controller>().ChangeR(0.0f);
-                        other.GetComponent<Controller>().RF_WORK();                     
+                        other.GetComponent<Controller>().RF_WORK();
+                        if (ownCircle != null)
+                            ownCircle.StartOut();
                         break;
                     case PathMode.TURN:                      
                         other.GetComponent<Controller>().ChangeR(target_right);
                         other.GetComponent<Controller>().work_RF = false;
+                        if (ownCircle != null)
+                            ownCircle.StartIn();
                         break;
                 }
             }

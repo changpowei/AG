@@ -22,6 +22,8 @@ public class ShipWork : MonoBehaviour
     private Transform target_trans;
 
     public float searchRange = 0.0f;
+    public Cinemachine.CinemachineVirtualCamera distory_view;
+    public ParticleSystem broken_particle;
 
     // Start is called before the first frame update
     void Start()
@@ -45,21 +47,36 @@ public class ShipWork : MonoBehaviour
         {
             var missile = FindObjectOfType<Controller>();
 
-            if ((!isKnown) && (Vector3.Distance(target_trans.position, this.transform.position)<=28000))
+            if(this.name == "CVLL")
             {
-                // 以下函式用於當RF偵測到護衛艦產生避帳點，之後於此部份修改避帳策略//
-                //missile.SettingAvoidPath(this.transform.position, searchRange);
-                SetKnown(true);
+                missile.enmyTarget = this;
+                missile.RF_Finded("CVLL",new Vector2(self_trans.position.x, self_trans.position.z));
             }
+            else
+            {
+                if (distance <= 28000)
+                {
+                    missile.RF_Finded("", new Vector2(self_trans.position.x, self_trans.position.z));
 
-            if ((missile.enmyTarget == null) &&(this.name == "CVLL"))            
-                missile.enmyTarget = this;                  
+                    if (!isKnown)
+                        SetKnown(true);
+                    else
+                    {
+                        if (missile.enmyTarget == null)
+                            missile.SettingAvoidPath(this.transform.position, searchRange);
+                    }
+                }
+            }                     
         }
         else if(other.CompareTag("Missile"))
         {
-            startSimulator = false;
-            other.GetComponent<Controller>().Broken();
-            Debug.Log("The Ship [" + shipName + "] is be destroy!!");
+            if (startSimulator)
+            {
+                startSimulator = false;
+                other.GetComponent<Controller>().Broken();
+                Debug.Log("The Ship [" + shipName + "] is be destroy!!");
+                broken_particle.Play();
+            }
         }
     }
 
@@ -75,14 +92,18 @@ public class ShipWork : MonoBehaviour
 
     private void OnGUI()
     {
+        var targetPos = new Vector2(target_trans.position.x, target_trans.position.z);
+        var selfPos = new Vector2(self_trans.position.x, self_trans.position.z);
+
+        distance = Vector2.Distance(selfPos, targetPos);
+
         if (startSimulator)
         {
             if (isKnown)
             {
-                var tar_pos = target_trans.position;
-                var self_pos = self_trans.position;
+                
                 var indanger = false;
-                distance = Vector2.Distance(new Vector2(tar_pos.x, tar_pos.z), new Vector2(self_pos.x, self_pos.z));
+               
                 if (distance > 1000.0f)
                 {
                     baseNode.d_value.text = (distance / 1000.0f).ToString("0.000");
@@ -118,7 +139,21 @@ public class ShipWork : MonoBehaviour
                     baseNode.a_value.text = "0";
                 }
             }
-        } 
+        }
+
+        #region //曲率高度設定
+
+        float setting = Mathf.Exp(((float)((distance / 1000) / 4.12 - Mathf.Sqrt(target_trans.position.y))));
+
+        if (setting >= 16)
+        {
+            transform.position = new Vector3(transform.position.x, -16.0f, transform.position.z);
+        }
+        else
+        {
+            transform.position = new Vector3(transform.position.x, 0.0f - setting, transform.position.z);
+        }
+        #endregion
     }
 
     public void StartSimulator()
@@ -132,6 +167,10 @@ public class ShipWork : MonoBehaviour
     public void End()
     {
         startSimulator = false;
+        if (broken_particle != null)
+            broken_particle.Stop();
+        if(distory_view != null)
+            distory_view.enabled = false;
         baseNode.Reset();
     }
 
@@ -141,6 +180,8 @@ public class ShipWork : MonoBehaviour
         {
             yield return null;
             this.transform.Translate(0.0f, 0.0f, (shipSpeed * 0.5144f) / 60.0f * Time.timeScale);
+            if(Vector3.Distance(target_trans.position, this.transform.position) <= 500)
+                distory_view.enabled = true;
         }
     }
 }
